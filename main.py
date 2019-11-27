@@ -61,6 +61,7 @@ def getFuncName(prefix,specfile):
                     continue
                 allfuncs[sec[2].split("(")[0]] = [0,0,'null',type,"VOID"]
     return allfuncs
+
 def insertContentRet(all_funcs,func_name,var_name):
     var_list = "str,str"
 
@@ -71,6 +72,7 @@ def insertContentRet(all_funcs,func_name,var_name):
     new_line = "    "+"VARPEEK(\"(" + \
                var_list + ")\\n\",\"RET\",\""+func_name+"\""+var_name_list +");\n"
     return new_line
+
 def insertContentVar(all_funcs,func_name,var_name):
     var_list = "str"
 
