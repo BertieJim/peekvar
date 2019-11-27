@@ -1,0 +1,82 @@
+
+1.做遍历插入
+
+ - 搜集所有variable type
+ - 遍历插入type
+
+注意：
+注释中的函数
+以及
+较长较短的函数
+
+
+2。做一个所有参数类型的列表
+即 api 群像
+
+
+
+regstore.c
+Traceback (most recent call last):
+  File "/Users/bertie/PycharmProjects/readSpec/source/main.py", line 157, in <module>
+    readspec()
+  File "/Users/bertie/PycharmProjects/readSpec/source/main.py", line 149, in readspec
+    insertnum += addNewChannel(old_path,new_path,all_funcs,cfile,)
+  File "/Users/bertie/PycharmProjects/readSpec/source/main.py", line 99, in addNewChannel
+    all_funcs[func][0] += 1
+KeyError: 'CRYPT_RegCloseStore'
+
+
+for j in range(20):
+
+204 209
+
+
+
+简单的使用正则表达式，似乎是行不通的；因为无法穷尽所有规则
+且有很多其他情况
+在查找WINAPI + funcname时，即发生了问题；
+我们不如做个二次验证，使用语法分析。
+
+问题1：
+忘了加 page 就continue了
+
+问李：
+1。A 调用 B
+2。某个函数，未在spec里，是否要输出
+
+3。对非API 函数，进行文法分析
+
+
+all_funcs:
+[ 被定义几次（一般没有多次，所以后边并没有存多次对page num）: 1:一次 0：没发现定义 -10：有定义，spec中没有
+  page num：   0：没有插入成功（没找到{）
+  filename: default:null
+  var_type (default: [])
+  return_type (default: void)
+
+]
+
+
+返回值：
+不是}之前
+而是 return之前
+2.有这种存在： return entry == NULL;
+return ContextPropertyList_EnumPropIDs(crl_from_ptr(pCRLContext)->base.properties, dwPropId);
+
+这里打印，怎么打印？试一试
+会不会交叉打印，要不要强制刷新缓存区
+[1, 0, 'crl.c', ['ptr', 'ptr', 'ptr', 'ptr'], 'PCCRL_CONTEXT']
+
+有可能是null
+
+但大部分是*pCrlContext 一个指针...咋搞？？？
+
+看看apimonitor咋搞的先
+
+还有这种：
+return CryptVerifyCertificateSignatureEx(hCryptProv, dwCertEncodingType,
+要找;
+
+会不会导致多执行一遍？？？？？？？
+
+cert.c
