@@ -112,6 +112,7 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 '''
                 first ,the func is in the file
                 '''
+
                 all_funcs[func][0] += 1
                 all_funcs[func][2] = file_name
 
@@ -120,6 +121,7 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 page += 1
                 all_funcs[func] = [-10, page,file_name,[],line.split(" ")[0]]
                 # print(func,all_funcs[func])
+
                 continue
 
             all_funcs[func][4] = line.split(" ")[0]
@@ -297,7 +299,7 @@ def main():
 
 
 if __name__ == '__main__':
-    all_funcs = main()
+    # all_funcs = main()
     # a = '232 33;'
     # print(list(a)[-1])
 
