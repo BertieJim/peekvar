@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 
@@ -94,34 +95,40 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
     '''
     f_old = open(os.path.join(old_prefix,file_name))
     f_new = open(os.path.join(new_prefix , file_name),'w')
-    #TODO:for compatible
+    '''
+    for compatible
+    '''
     print(file_name)
     func_location = []
-
     page = 0
 
     lines = f_old.readlines()
     for line in lines:
         p = re.compile('WINAPI\s([a-zA-Z0-9_]+)')
         func = p.findall(line)
-
         if func!=[]:
             func = func[0]
             try:
-                #TODO: first ,the func is in the file
+                '''
+                first ,the func is in the file
+                '''
                 all_funcs[func][0] += 1
                 all_funcs[func][2] = file_name
+
             except KeyError:
                 #TODO: there are cases declared WINAPI but not in spec file
                 page += 1
                 all_funcs[func] = [-10, page,file_name,[],line.split(" ")[0]]
+                # print(func,all_funcs[func])
                 continue
 
             all_funcs[func][4] = line.split(" ")[0]
             func_location.append([func,page])
         page += 1
     func_location.sort(key=lambda x:-x[1])
+
     insertnum = 0
+
     for name,i in func_location:
         left_location = i
         right_location = []
@@ -204,18 +211,22 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 break
 
         if(is_useful == 0):
+            print('is userful == 0')
+            print(name, i,all_funcs[name])
+
             continue
         elif(is_useful==1):
+
             print("-------there is one with no } but { exist")
             print(name, i,all_funcs[name])
             continue
+
         elif(is_useful == 2):
             #TODO:every func who has been inserted is marked as page num
             # as there are func in // so only explicit one has been inserted
 
             # TODO:接下来做行数标记
             all_funcs[name][1] = page
-
             insertnum += 1
             '''
             insert ret value as ret val
@@ -256,7 +267,13 @@ def whatProblem(all_funcs):
             '''
             print("too much implement "+i+str(all_funcs[i]))
 
-def readspec():
+        if all_funcs[i][0] < 0:
+            '''
+            means not in spec file
+            '''
+            print("not in spec file "+i+str(all_funcs[i]))
+
+def main():
     new_path = "../crypt32"
     old_path = "../crypt32_bac"
     all_cfile_name,spec_name = pickUsefulFiles(old_path)
@@ -264,19 +281,23 @@ def readspec():
     all_funcs = getFuncName(old_path,spec_name)
 
     insertnum = 0
-    for cfile in all_cfile_name:
-        insertnum += addNewChannel(old_path,new_path,all_funcs,cfile,)
-        print("------"+str(insertnum))
+    print(len(all_funcs))
 
-    print("------+++"+str(len(all_funcs)))
-    print(all_funcs['CryptDecodeObject'])
-    print(all_funcs['CryptEncodeObjectEx'])
-    whatProblem(all_funcs)
+
+    for cfile in all_cfile_name:
+        insertnum += addNewChannel(old_path,new_path,all_funcs,cfile)
+
+    print(len(all_funcs))
+    # whatProblem(all_funcs)
+
+
+
+
 
 
 
 if __name__ == '__main__':
-    all_funcs = readspec()
+    all_funcs = main()
     # a = '232 33;'
     # print(list(a)[-1])
 

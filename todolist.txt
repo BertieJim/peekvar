@@ -1,3 +1,7 @@
+总结：
+210 366
+209 - 3 + 15 = 221
+
 
 1.做遍历插入
 
@@ -80,3 +84,55 @@ return CryptVerifyCertificateSignatureEx(hCryptProv, dwCertEncodingType,
 会不会导致多执行一遍？？？？？？？
 
 cert.c
+
+static BOOL WINAPI CRYPT_AsnEncodeBool(DWORD dwCertEncodingType,
+ LPCSTR lpszStructType, const void *pvStructInfo, DWORD dwFlags,
+ PCRYPT_ENCODE_PARA pEncodePara, BYTE *pbEncoded, DWORD *pcbEncoded);
+ 没有实现，只有声明(加了一个 @ stdcall CRYPT_AsnEncodePubKeyInfo(ptr)
+)
+
+___
+
+
+- __wine_process_init
+	- wine_dll_set_callback( load_builtin_callback )
+		- load_dll
+			- get_load_order
+			- load_builtin_dll
+			- load_native_dll
+				- perform_relocations
+				- virtual_map_section
+					- map_image
+
+
+系统角度
+补充部分     （对整体结构的补充）
+	最终的目的
+
+	1.在哪里 解析文件名，查看 是exe.so / exe，分析部分
+
+2.加点信息出来：
+
+3.
+
+
+
+
+
+
+一两个大点做好 春节前
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
