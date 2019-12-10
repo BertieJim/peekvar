@@ -10,9 +10,7 @@ import os
 import re
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
-
-
-
+from db import bigDb
 
 def dirpass(dirin):
     num = 0
@@ -51,14 +49,19 @@ def main():
     changeXMLFont(filename,new_xml)
     lines = open(new_xml).read()
     tree = ET.fromstring(lines)
+    group_pkey = {}
+    group_n = []
     group = []
     for m in tree.findall("Module"):
         for Category in m.findall("Category"):
             cname = Category.get("Name")
             group = cname.split('/')
-            print(group)
+            if group[0] not in group_pkey:
+                group_pkey[group[0]] = len(group_pkey.keys())+1
+
             for api in Category.findall("Api"):
                 aname = api.get("Name")
+
                 print(aname)
                 input()
 
