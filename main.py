@@ -70,7 +70,7 @@ def insertContentRet(all_funcs,func_name,var_name):
     var_list += ','+ all_funcs[func_name][4]
 
     var_name_list = ","+var_name
-    new_line = "    "+"VARPEEK(\"(" + \
+    new_line = "VARPEEK(\"(" + \
                var_list + ")\\n\",\"RET\",\""+func_name+"\""+var_name_list +");\n"
     return new_line
 
@@ -112,9 +112,11 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 '''
                 first ,the func is in the file
                 '''
-
-                all_funcs[func][0] += 1
-                all_funcs[func][2] = file_name
+                if(all_funcs[func][0] != -10):
+                    all_funcs[func][0] += 1
+                    all_funcs[func][2] = file_name
+                    all_funcs[func][4] = line.split(" ")[0]
+                    func_location.append([func, page])
 
             except KeyError:
                 #TODO: there are cases declared WINAPI but not in spec file
@@ -124,8 +126,7 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
 
                 continue
 
-            all_funcs[func][4] = line.split(" ")[0]
-            func_location.append([func,page])
+
         page += 1
     func_location.sort(key=lambda x:-x[1])
 
@@ -144,14 +145,18 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
             ifdebug = 0
 
             p = re.compile('([a-zA-Z]+),')
-            if is_useful != 1 and p.findall(lines[i + j]) != []:
+            if is_useful == 0 and list(lines[i+j].strip())[-1] == ';':
+                break
+
+            if is_useful == 0 and p.findall(lines[i + j]) != []:
                 for eachone in p.findall(lines[i + j]):
                     var_name.append(eachone)
             p2 = re.compile('([a-zA-Z]+)\)')
-            if is_useful != 1 and  p2.findall(lines[i + j]) != []:
+
+            if is_useful == 0 and  p2.findall(lines[i + j]) != []:
                 for eachone in p2.findall(lines[i + j]):
                     var_name.append(eachone)
-            if is_useful != 1 and  '{' in lines[i+j]:
+            if is_useful == 0 and  '{' in lines[i+j]:
                 left_location = i+j
                 is_useful = 1
 
@@ -164,6 +169,7 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 theone = ''
                 ingetval = 0
                 continue
+
             elif 'return ' in lines[i + j]:
                 right_location.append(i+j)
 
@@ -240,7 +246,9 @@ def addNewChannel(old_prefix,new_prefix,all_funcs, file_name):
                 # print(i)
                 # print(insertContentRet(all_funcs,name,retvar_name[num]))
                 # input()
-                lines.insert(int(i)-1,insertContentRet(all_funcs,name,retvar_name[num]))
+                indent = lines[int(i)].split('return')[0]
+                lines.insert(int(i),indent+insertContentRet(all_funcs,name,retvar_name[num]))
+
 
             lines.insert(int(left_location)+1,insertContentVar(all_funcs,name,var_name))
 
@@ -274,6 +282,9 @@ def whatProblem(all_funcs):
             means not in spec file
             '''
             print("not in spec file "+i+str(all_funcs[i]))
+        else:
+            print("perfect inserted funcs "+i+str(all_funcs[i]))
+
 
 def main():
     new_path = "../crypt32"
@@ -289,8 +300,9 @@ def main():
     for cfile in all_cfile_name:
         insertnum += addNewChannel(old_path,new_path,all_funcs,cfile)
 
+    print(insertnum)
     print(len(all_funcs))
-    # whatProblem(all_funcs)
+    whatProblem(all_funcs)
 
 
 
@@ -299,7 +311,8 @@ def main():
 
 
 if __name__ == '__main__':
-    # all_funcs = main()
+
+    all_funcs = main()
     # a = '232 33;'
     # print(list(a)[-1])
 
