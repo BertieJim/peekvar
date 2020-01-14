@@ -1,0 +1,175 @@
+1. spec 里的函数
+2. .c实现的 标志api的 函数
+3.windows，xml里标志的 函数
+
+
+以 spec 和 xml为主
+
+
+但是 static又怎么算呢？
+
+don't exist CreateFileU[0, 0, 'null', ['wstr', 'long', 'long', 'ptr', 'long', 'long', 'ptr'], 'VOID']
+don't insert CreateFileU[0, 0, 'null', ['wstr', 'long', 'long', 'ptr', 'long', 'long', 'ptr'], 'VOID']
+don't exist CryptAcquireContextU[0, 0, 'null', ['ptr', 'wstr', 'wstr', 'long', 'long'], 'VOID']
+don't insert CryptAcquireContextU[0, 0, 'null', ['ptr', 'wstr', 'wstr', 'long', 'long'], 'VOID']
+don't exist I_CryptGetDefaultCryptProv[0, 0, 'null', ['long'], 'VOID']
+don't insert I_CryptGetDefaultCryptProv[0, 0, 'null', ['long'], 'VOID']
+not in spec file CRYPT_RegCloseStore[-10, 322, 'regstore.c', [], 'static']
+not in spec file CRYPT_RegWriteCert[-10, 393, 'regstore.c', [], 'static']
+
+————————————————————————
+@ stdcall CreateFileU(wstr long long ptr long long ptr) kernel32.CreateFileW
+————
+----______
+
+ <Api Name="MAPIFreeBuffer" Ordinal="17">
+            <Param Type="LPVOID" Name="lpBuffer" />
+            <Return Type="HRESULT" Display="ULONG" />
+          msmapi32.xml
+
+ <Api Name="MAPIFreeBuffer">
+            <Param Type="LPVOID" Name="pv" />
+            <Return Type="[MAPI_ERROR]" />
+        </Api>
+           mapi32.xml
+
+mapi.dll ULONG WINAPI MAPIFreeBuffer(LPVOID lpBuffer)
+
+_____________
+
+xml :
+[['ppAssemblyNameObj', 'LPASSEMBLYNAME*'], ['szAssemblyName', 'LPCWSTR'], ['dwFlags', 'DWORD'], ['pvReserved', 'LPVOID'], ['../API/Microsoft.NET/fusion.xml']]
+
+wine:
+
+HRESULT WINAPI CreateAssemblyNameObject(
+    LPASSEMBLYNAME *obj,
+    LPCWSTR assembly,
+    DWORD flags,
+    LPVOID reserved )
+
+
+名字命名不一样；
+
+['LPASSEMBLYNAME*', 'LPCWSTR', 'DWORD', 'LPVOID', ['../API/Microsoft.NET/fusion.xml']]
+['LPASSEMBLYNAME*', 'LPCWSTR', '[CreateAsmNameObjFlags]', 'LPVOID', ['../API/Windows/sxs.xml']]
+
+以fusion为主
+
+
+SQLRETURN WINAPI ODBC32_SQLBrowseConnect(
+    SQLHDBC            hdbc,
+    SQLCHAR               *szConnStrIn,
+    SQLSMALLINT        cbConnStrIn,
+    SQLCHAR               *szConnStrOut,
+    SQLSMALLINT        cbConnStrOutMax,
+    SQLSMALLINT       *pcbConnStrOut)
+this : ['SQLHDBC', 'SQLCHAR*', 'SQLSMALLINT', 'SQLCHAR*', 'SQLSMALLINT', 'SQLSMALLINT*', ['../API/Windows/odbc32.xml']]
+
+['SQLHDBC', 'SQLTCHAR*', 'SQLSMALLINT', 'SQLTCHAR*', 'SQLSMALLINT', 'SQLSMALLINT*', ['../API/Windows/odbc32.xml']]
+
+
+this one diffe a lot:
+InternetDial
+['HWND', 'LPTSTR', '[INTERNET_DIAL_FLAGS]', 'DWORD_PTR*', 'DWORD', '../API/Windows/Wininet.xml']
+['HWND', 'LPSTR', '[INTERNET_DIAL_FLAGS]', 'LPDWORD*', 'DWORD', '../API/Windows/Wininet.xml']
+
+BluetoothSetServiceState
+../API/Windows/Bthprops.xml
+['HANDLE', 'BLUETOOTH_DEVICE_INFO*', 'GUID*', 'DWORD', '../API/Windows/irprops.xml']
+['HANDLE', 'BLUETOOTH_DEVICE_INFO*', 'GUID*', '[BLUETOOTH_SERVICE_FLAGS]', '../API/Windows/Bthprops.xml']
+
+DllGetVersion
+../API/Windows/Common.xml
+['PCABINETDLLVERSIONINFO', '../API/Windows/Cabinet.xml']
+['DLLVERSIONINFO*', '../API/Windows/Common.xml']
+../API/Windows/Common.xml
+['Cabinet.dll', '../API/Windows/Cabinet.xml', 'PCABINETDLLVERSIONINFO']
+['*', '../API/Windows/Common.xml', 'DLLVERSIONINFO*']
+
+
+
+DeleteUrlCacheEntry
+../API/Windows/Wininet.xml
+['LPCTSTR', ['../API/Windows/Wininet.xml']]
+['LPCSTR', ['../API/Windows/Wininet.xml']]
+
+['HWND', 'LPTSTR', '[INTERNET_DIAL_FLAGS]', 'DWORD_PTR*', 'DWORD', ['../API/Windows/Wininet.xml']]
+['HWND', 'LPSTR', '[INTERNET_DIAL_FLAGS]', 'LPDWORD*', 'DWORD', ['../API/Windows/Wininet.xml']]
+
+attention:
+155 stdcall SQLBrowseConnectW(long wstr long wstr long ptr) ODBC32_SQLBrowseConnectW
+
+
+BluetoothSetServiceState
+['Bthprops.cpl', '../API/Windows/Bthprops.xml', 'HANDLE', 'BLUETOOTH_DEVICE_INFO*', 'GUID*', '[BLUETOOTH_SERVICE_FLAGS]']
+['irprops.cpl', '../API/Windows/irprops.xml', 'HANDLE', 'BLUETOOTH_DEVICE_INFO*', 'GUID*', 'DWORD']
+
+
+MAPIFreeBuffer
+../API/MAPI/Mapi32.xml
+['MsMapi32.dll', '../API/MAPI/MsMapi32.xml', 'LPVOID']
+['Mapi32.dll', '../API/MAPI/Mapi32.xml', 'LPVOID']
+
+a lot these cases:
+
+look just all all the same:
+SQLColAttribute
+../API/Windows/odbc32.xml
+['ODBC32.DLL', '../API/Windows/odbc32.xml', 'SQLHSTMT', 'SQLUSMALLINT', 'SQLUSMALLINT', 'SQLPOINTER', 'SQLSMALLINT', 'SQLSMALLINT*', 'SQLLEN*']
+['ODBC32.DLL', '../API/Windows/odbc32.xml', 'SQLHSTMT', 'SQLUSMALLINT', 'SQLUSMALLINT', 'SQLPOINTER', 'SQLSMALLINT', 'SQLSMALLINT*', 'SQLLEN*']
+
+
+BluetoothAuthenticateMultipleDevices
+../API/Windows/Bthprops.xml
+['irprops.cpl', '../API/Windows/irprops.xml', 'HWND', 'HANDLE', 'DWORD', 'BLUETOOTH_DEVICE_INFO*']
+['Bthprops.cpl', '../API/Windows/Bthprops.xml', 'HWND', 'HANDLE', 'DWORD', 'BLUETOOTH_DEVICE_INFO*']
+
+ioctlsocket
+../API/Windows/Wsock32.xml
+['Ws2_32.dll', '../API/Windows/Ws2_32.xml', 'SOCKET', '[Socket_IOCTL]', 'u_long*']
+['Wsock32.dll', '../API/Windows/Wsock32.xml', 'SOCKET', '[Socket_IOCTL]', 'u_long*']
+what happenning?
+
+GetFilePatchSignatureByHandle
+../API/Windows/mspatcha.xml
+['mspatchc.dll', '../API/Windows/mspatchc.xml', 'HANDLE', '[PatchOptionFlags]', 'PVOID', 'ULONG', 'PPATCH_IGNORE_RANGE', 'ULONG', 'PPATCH_RETAIN_RANGE', 'ULONG', 'PVOID']
+['mspatcha.dll', '../API/Windows/mspatcha.xml', 'HANDLE', '[PatchOptionFlags]', 'PVOID', 'ULONG', 'PPATCH_IGNORE_RANGE', 'ULONG', 'PPATCH_RETAIN_RANGE', 'ULONG', 'PVOID']
+
+
+_____________
+
+ 20%|█▉        | 415/2121 [00:00<00:02, 795.47it/s] CreateAssemblyNameObject
+../API/Windows/sxs.xml
+['mscorwks.dll', '../API/Microsoft.NET/MsCorWks.xml', 'LPASSEMBLYNAME*', 'LPCWSTR', 'DWORD', 'LPVOID']
+['SxS.dll', '../API/Windows/sxs.xml', 'LPASSEMBLYNAME*', 'LPCWSTR', '[CreateAsmNameObjFlags]', 'LPVOID']
+
+
+ 23%|██▎       | 479/2121 [00:00<00:02, 622.29it/s]DllGetVersion
+../API/Windows/Common.xml
+['Cabinet.dll', '../API/Windows/Cabinet.xml', 'PCABINETDLLVERSIONINFO']
+['*', '../API/Windows/Common.xml', 'DLLVERSIO
+
+@ stdcall CryptAcquireContextU(ptr wstr wstr long long) advapi32.CryptAcquireContextW
+importante relay不知道这种转换
+
+
+typedef BOOL (WINAPI *CertVerifyRevocationFunc)(DWORD, DWORD, DWORD,  void **, DWORD, PCERT_REVOCATION_PARA, PCERT_REVOCATION_STATUS);
+这是啥？
+
+
+static BOOL WINAPI verify_base_policy(LPCSTR szPolicyOID,
+特有现象winapi
+
+HCRYPTPROV WINAPI DECLSPEC_HOTPATCH I_CryptGetDefaultCryptProv(ALG_ID algid)
+DWORD WINAPI I_CryptAllocTls(void)
+DWORD WINAPI I_CryptAllocTls(void)
+
+HCRYPTPROV WINAPI DECLSPEC_HOTPATCH I_CryptGetDefaultCryptProv(ALG_ID algid)
+(main.c)
+
+
+跨dll调用，被api monitor记录下来，在wine里用内部调用实现。
+relay无法捕捉从而进行对比
+
+

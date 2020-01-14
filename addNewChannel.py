@@ -2,7 +2,7 @@ import copy
 import os
 import re
 
-
+from db import bigDb
 TYPE_TO_TYPE ={
     "str":"%d",
     "ptr":"%p",
@@ -46,6 +46,11 @@ def pickUsefulFiles(dir):
     return cfile,specfile
 
 def getFuncName(prefix,specfile):
+    '''
+    :param prefix:
+    :param specfile: only filename
+    :return:
+    '''
     allfuncs = {}
 
     for i in specfile:
@@ -61,6 +66,7 @@ def getFuncName(prefix,specfile):
                     allfuncs[sec[2].split("(")[0]] = [0, 0,'null',[],'VOID']
                     continue
                 allfuncs[sec[2].split("(")[0]] = [0,0,'null',type,"VOID"]
+
     return allfuncs
 
 def insertContentRet(all_funcs,func_name,var_name):
@@ -283,10 +289,11 @@ def whatProblem(all_funcs):
             '''
             print("not in spec file "+i+str(all_funcs[i]))
         else:
-            print("perfect inserted funcs "+i+str(all_funcs[i]))
+            pass
+            # print("perfect inserted funcs "+i+str(all_funcs[i]))
 
 
-def main():
+def test():
     new_path = "../crypt32"
     old_path = "../crypt32_bac"
     all_cfile_name,spec_name = pickUsefulFiles(old_path)
@@ -304,15 +311,52 @@ def main():
     print(len(all_funcs))
     whatProblem(all_funcs)
 
+def getDllName(newpath,makefile):
+    path = os.path.join(newpath,makefile)
+    f = open(path)
+    lines = f.read()
+    p = re.compile('\s([a-zA-Z0-9]+).dll')
+    match = p.findall(lines)
+    if(len(match)!=1):
+        for i in match:
+            if i != match[0]:
+                print(match)
+                print("get dll name error")
+                input()
+
+        return match[0]
+    return match[0]
+
+def registerfuncinfo():
+
+    path = 'crypt42'
+    prefix = '../'
+
+    # os.rename(prefix+path,prefix+path+'bac')
+    # os.mkdir(prefix+path)
+    old_path = prefix+path+'bac'
+    new_path = prefix+path
 
 
 
+    all_cfile_name, spec_name = pickUsefulFiles(old_path)
+
+    dllname = getDllName(old_path,'Makefile.in')+'.dll'
+    # print(dllname)
+    all_funcs = getFuncName(old_path, spec_name)
+
+
+    for cfile in all_cfile_name:
+
+        addNewChannel(old_path, new_path, all_funcs, cfile)
 
 
 
 if __name__ == '__main__':
 
-    all_funcs = main()
+
+    # test()
+    registerfuncinfo()
     # a = '232 33;'
     # print(list(a)[-1])
 
