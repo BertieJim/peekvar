@@ -12,6 +12,7 @@ patch
 
 import copy
 import os
+import shutil
 import re
 # from tqdm import tqdm
 
@@ -27,31 +28,59 @@ TYPE_TO_TYPE ={
     "LONG":"%d",
     "DWORD":"%d"
 }
-
-def getDirFiles(dir):
+debug_var_type = 0
+def getDirFiles(dir,newpath,middlepath):
     '''
     :param dir: input relative or full path
     :return: all file path
     '''
     files_ = []
+    files_2 = []
     list = os.listdir(dir)
+    mtemp = middlepath
 
     for i in range(0, len(list)):
 
         path = os.path.join(dir, list[i])
         if os.path.isdir(path):
-            files_.extend(getDirFiles(path))
-        if os.path.isfile(path):
-            files_.append(path)
-    return files_
+            path1 = os.path.join(newpath,mtemp)
+            path2 = os.path.join(path1,list[i])
+            os.mkdir(path2)
+            # print(middlepath)
 
-def pickUsefulFiles(dir):
+            middlepath = os.path.join(mtemp,list[i])
+            # print(path1)
+            # print(path2)
+            # print(list[i])
+
+            aa,bb = getDirFiles(path,newpath,middlepath)
+            # print(aa)
+            # print(bb)
+
+            for a in aa:
+                files_2.append(os.path.join(middlepath,os.path.split(a)[-1]))
+
+            for b in bb:
+                files_2.append(b)
+            #
+            # print(list[i])
+            # print(files_2)
+            # input()
+        if os.path.isfile(path):
+            # files_.append(path)
+            # middlepath = os.path.join(middlepath, list[i])
+            files_.append(os.path.join(middlepath, os.path.split(path)[-1]))
+
+    return files_,files_2
+
+def pickUsefulFiles(dir,prefix):
     '''
     :param dir: dir like ../crypt32_bac
     :return: filename without path
     '''
-    allFiles = getDirFiles(dir)
+    allFiles,files2 = getDirFiles(dir,prefix,"")
     specfile = []
+    otherfile = []
     cfile = []
     for i in allFiles:
 
@@ -60,8 +89,15 @@ def pickUsefulFiles(dir):
             specfile.append(os.path.split(i)[-1])
         elif suffix == '.c':
             cfile.append(os.path.split(i)[-1])
+        else:
+            otherfile.append(os.path.split(i)[-1])
+    for i in files2:
+        # temp = os.path.join()
+        otherfile.append(i)
 
-    return cfile,specfile
+    # print(otherfile)
+    # input()
+    return cfile,specfile,otherfile
 global funchavetwoname
 def getFuncName(prefix,specfile,dllname):
     '''
@@ -113,11 +149,12 @@ def insertContentRet(all_funcs,func_name,var_name,indent):
         string2 = TYPE_TO_TYPE[all_funcs[-1]]
     except KeyError:
         string2 = "%p"
-        print("RET--------"+all_funcs[-1]+all_funcs[2]+func_name)
+        if(debug_var_type):
+            print("RET--------"+all_funcs[-1]+all_funcs[2]+func_name)
+
         # print("--------"+TYPE_TO_TYPE[all_funcs[-1]])
 
         # print("112"+all_funcs[-1])
-
     string3 = ")\\n\","
     # varname,varname,varname
     string4 = var_name
@@ -132,11 +169,12 @@ def insertContentVar(all_funcs,func_name,var_name):
     # VARPEEK("(str,str,BOOL)\n","RET","CryptBinaryToStringW",encoder(pbBinary, cbBinary, dwFlags, pszString, pcchString));
     # FIXME("Unimplemented type %d\n", dwFlags & 0x0fffffff);
     if(len(all_funcs[4])==1 and all_funcs[4][0] == 'void'):
-        print("132")
-        print(func_name)
-        print(all_funcs)
-        print(var_name)
-        input()
+        if(debug_var_type):
+            print("132")
+            print(func_name)
+            print(all_funcs)
+            print(var_name)
+            input()
         string1 = "PEEKVAR(\"_CALL_" + all_funcs[1] + "." + func_name + "_("
         string2 = ""
         string3 = ")\\n\""
@@ -145,11 +183,12 @@ def insertContentVar(all_funcs,func_name,var_name):
         return new_line
 
     if(len(all_funcs[3])!=len(var_name)):
-        print("146")
-        print(func_name)
-        print(all_funcs)
-        print(var_name)
-        input()
+        if(debug_var_type):
+            print("146")
+            print(func_name)
+            print(all_funcs)
+            print(var_name)
+            input()
 
     string1 = "PEEKVAR(\"_CALL_" + all_funcs[1] + "." + func_name + "_("
     # %d_%C_%S
@@ -172,9 +211,18 @@ def insertContentVar(all_funcs,func_name,var_name):
 
     string3 = ")\\n\","
     # varname,varname,varname
-    var_name_list = str(var_name[0])
+    if ("[" in var_name[0]):
+        temp = var_name[0].split('[')[0]
+        var_name_list = temp
+    else:
+        var_name_list = str(var_name[0])
+    # var_name_list = str(var_name[0])
     for i in range(len(var_name) - 1):
-        var_name_list += "," + str(var_name[i + 1])
+        if("[" in var_name[i+1]):
+            temp = var_name[i+1].split('[')[0]
+            var_name_list += "," + temp
+        else:
+            var_name_list += "," + str(var_name[i + 1])
     string4 = var_name_list
 
     string5 = ");\n"
@@ -339,31 +387,36 @@ def addNewChannel(oldp,newprefix,all_funcs, file_name):
             if(get_startpos == 1):
 
                 if 'return ' in lines[i + j] and ';' in lines[i + j]:
-                    right_location.append(i+j)
+                    #check if it is a return not in the head
+                    if(lines[i+j].strip().split(" ")[0] == 'return'):
 
-                    p3 = re.compile('return ([^;]+);')
+                        right_location.append(i+j)
 
-                    theone += p3.findall(lines[i + j])[0]
+                        p3 = re.compile('return ([^;]+);')
 
-                    retvar_name.append(theone)
-                    theone = ''
-                    ingetval = 0
-                    continue
+                        theone += p3.findall(lines[i + j])[0]
+
+                        retvar_name.append(theone)
+                        theone = ''
+                        ingetval = 0
+                        continue
 
                 elif 'return ' in lines[i + j]:
-                    right_location.append(i+j)
+                    if(lines[i+j].strip().split(" ")[0] == 'return'):
 
-                    p3 = re.compile('return ([^;]+)')
+                        right_location.append(i+j)
 
-                    theone += p3.findall(lines[i + j].strip())[0]
-                    ingetval = 1
+                        p3 = re.compile('return ([^;]+)')
 
-                    if (0):
-                        print(lines[i + j].strip())
-                        print(theone)
-                        print(all_funcs[name])
-                        input()
-                    continue
+                        theone += p3.findall(lines[i + j].strip())[0]
+                        ingetval = 1
+
+                        if (0):
+                            print(lines[i + j].strip())
+                            print(theone)
+                            print(all_funcs[name])
+                            input()
+                        continue
                 elif ingetval == 1 and ';' == list(lines[i + j].strip())[-1]:
 
                     p3 = re.compile('([^;]+);')
@@ -521,8 +574,8 @@ def getDllName(newpath,makefile):
 
 def registerfuncinfo(path,prefix):
 
-    # os.rename(prefix+path,prefix+path+'bac')
-    # os.mkdir(prefix+path)
+    os.rename(prefix+path,prefix+path+'bac')
+    os.mkdir(prefix+path)
 
     old_path = prefix + path + 'bac'
     new_path = prefix + path
@@ -530,8 +583,18 @@ def registerfuncinfo(path,prefix):
     path = prefix+path
 
 
-    all_cfile_name, spec_name = pickUsefulFiles(old_path)
-    print(spec_name)
+    all_cfile_name, spec_name,otherfile = pickUsefulFiles(old_path,new_path)
+    for i in otherfile:
+        #['crypt32_private.h', 'crypt32.rc', 'cryptres.h', 'Makefile.in', 'm/m.txt', 'm/m22.txt']
+
+        dstt = os.path.join(new_path,i)
+        srct = os.path.join(old_path,i)
+        shutil.copy(srct,dstt)
+
+
+    # print(otherfile)
+    # input()
+    # print(spec_name)
     if(len(spec_name) != 1):
         print('spec file number > 1')
         print(path)

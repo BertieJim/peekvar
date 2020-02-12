@@ -1,10 +1,59 @@
 import os
 from addNewChannel import pickUsefulFiles
 from addNewChannel import getFuncName
+
+import pandas as pd
 import re
 '''
 this file find functions advote themselves
 '''
+def getAllFuncInfo(oldp,all_funcs, file_name):
+    '''
+    :param all_funcs: spec name with reference number
+    :param file_name: relative path
+    :return:
+    '''
+    # print(os.path.join(prefix,file_name))
+    f_old = open(os.path.join(oldp,file_name))
+    '''
+    for compatible
+    '''
+    print("[-]now with "+file_name)
+    func_location = []
+    page = 0
+    '''
+    找到所有winapi函数的位置
+    '''
+    lines = f_old.readlines()
+    for line in lines:
+        p = re.compile('WINAPI\s([a-zA-Z0-9_]+)')
+        func = p.findall(line)
+
+        if func!=[]:
+            func = func[0]
+            if func in all_funcs.keys():
+                '''
+                first ,the func is in the file
+                not in spec file like static just goes by
+                '''
+
+                #     allfuncs[sec[2].split("(")[0]] = [0,dllname,'null',type,[],[],"VOID"]
+
+                all_funcs[func] = [ file_name ]
+
+            else:
+                #TODO: there are cases declared WINAPI but not in spec file
+                # print(line)
+                # print("218")
+                print(func)
+                # input()
+                # input()
+
+            continue
+
+    return 0
+
+
 
 def findTestFunction(old_prefix,all_funcs,all_demos,file_name):
     f_old = open(os.path.join(old_prefix,file_name))
@@ -224,17 +273,26 @@ def main():
     all_cfile_name, spec_name = pickUsefulFiles(old_path)
 
     # print(dllname)
-    all_funcs = getFuncName(old_path, spec_name)
-    all_demos = {}
 
-    allfunctoset = findTestFunction(old_path, all_funcs,all_demos,'cert.c')
-    print(allfunctoset)
+    if (len(spec_name) != 1):
+        print('spec file number > 1')
+        print(path)
+        return
 
-    # for cfile in all_cfile_name:
 
-    #for i in all_demos:
-    #     print(i)
-    #     print(all_demos[i])
+    all_funcs = getFuncName(old_path, spec_name,)
+    print("[1]there are " + str(len(all_funcs)) + " functions")
+
+    for cfile in all_cfile_name:
+    #cfile = 'main.c'
+        getAllFuncInfo(old_path, all_funcs, cfile)
+
+    new_path = '../data/all_func_file_info.txt'
+    f = open(new_path,'w')
+    f.write(str(all_funcs))
+    print(all_funcs["CertFindExtension"])
+    # pd.to_pickle(all_funcs, "../data/funcs_and_files.pkl")
+
 
 
 if __name__ == '__main__':
